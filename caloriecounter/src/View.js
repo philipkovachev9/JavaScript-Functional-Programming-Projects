@@ -3,7 +3,6 @@ import * as R from 'ramda';
 import { h } from 'virtual-dom';
 import { showFormMsg, mealInputMsg, caloriesInputMsg, saveMealMsg } from './Update';
 const { 
-  pre,
   div,
   h1,
   button,
