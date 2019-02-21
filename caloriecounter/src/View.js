@@ -1,7 +1,64 @@
 import hh from 'hyperscript-helpers';
+import * as R from 'ramda';
 import { h } from 'virtual-dom';
 import { showFormMsg, mealInputMsg, caloriesInputMsg, saveMealMsg } from './Update';
-const { pre, div, h1, button, form, label, input } = hh(h);
+const { 
+  pre,
+  div,
+  h1,
+  button,
+  form,
+  label,
+  input,
+  table,
+  thead,
+  tbody,
+  tr,
+  th,
+  td
+}  = hh(h);
+
+function cell(tag, className, value) {
+  return tag({ className }, value);
+}
+
+function mealRow(dispatch, className, meal) {
+  return tr({ className }, [
+    cell(td, 'pa2', meal.description),
+    cell(td, 'pa2 tr', meal.calories),
+    cell(td, 'pa2 tr', []),
+  ])
+}
+
+const tableHeader = thead([
+  tr([
+    cell(th, 'pa2 tl', 'Meal'),
+    cell(th, 'pa2 tr', 'Calories'),
+    cell(th, '', ''),
+  ]),
+]);
+
+function totalRow(meals) {
+  const total = R.pipe(
+    R.map(meal => meal.calories ),
+    R.sum,
+  )(meals);
+  return tr({ className: 'bt b' }, [
+    cell(td, 'pa2 tr', 'Total:'),
+    cell(td, 'pa2 tr', total),
+    cell(td, '', ''),
+  ]);
+}
+
+function mealsBody(dispatch, className, meals) {
+ const rows = R.map(
+   R.partial(mealRow, [dispatch, 'stripe-dark']),
+   meals);
+
+   const rowsWithTotal = [...rows, totalRow(meals)];
+
+   return tbody({ className }, rowsWithTotal);
+}
 
 function fieldSet(labelText, inputValue, oninput) {
  return div([
@@ -11,8 +68,18 @@ function fieldSet(labelText, inputValue, oninput) {
      type: 'text',
      value: inputValue,
      oninput
-   })
- ])
+   }),
+ ]);
+}
+
+function tableView(dispatch, meals) {
+  if(meals.length === 0) {
+    return div({ className: 'mv2 i black-50'}, 'No meals to display...');
+  }
+  return table({ className: 'mv2 w-100 collapse' }, [
+    tableHeader,
+    mealsBody(dispatch, '', meals)
+  ]);
 }
 
 function buttonSet(dispatch) {
@@ -31,7 +98,7 @@ function buttonSet(dispatch) {
     },
     'Cancel'
     )
-  ])
+  ]);
 }
 
 
@@ -65,7 +132,8 @@ function view(dispatch, model) {
   return div({className: 'mw6 center' }, [
     h1({className: 'f2 pv2 bb'}, 'Calorie Counter'),
     formView(dispatch,model),
-    pre(JSON.stringify(model, null, 2))
+    tableView(dispatch, model.meals),
+    
   ]);
 }
 
